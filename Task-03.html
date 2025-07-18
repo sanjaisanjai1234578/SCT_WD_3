@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tic Tac Toe</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #141e30, #243b55);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 1.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.5);
+      padding: 40px;
+      text-align: center;
+      backdrop-filter: blur(12px);
+      transition: transform 0.4s ease;
+    }
+
+    .container:hover {
+      transform: scale(1.02);
+    }
+
+    h1 {
+      color: #ffffff;
+      font-size: 2.5em;
+      margin-bottom: 25px;
+      letter-spacing: 1px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 110px);
+      grid-gap: 20px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .cell {
+      width: 110px;
+      height: 110px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      font-size: 3em;
+      font-weight: bold;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .cell:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(1.1);
+    }
+
+    .status {
+      color: #00e5ff;
+      font-size: 1.4em;
+      margin-top: 30px;
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from { text-shadow: 0 0 10px #00e5ff; }
+      to { text-shadow: 0 0 20px #00e5ff, 0 0 30px #00e5ff; }
+    }
+
+    button {
+      margin-top: 30px;
+      padding: 12px 30px;
+      background: linear-gradient(to right, #00c6ff, #0072ff);
+      border: none;
+      border-radius: 30px;
+      color: white;
+      font-size: 1.1em;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.3s, background 0.4s;
+    }
+
+    button:hover {
+      background: linear-gradient(to right, #0072ff, #00c6ff);
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Tic Tac Toe</h1>
+    <div class="board" id="board"></div>
+    <div class="status" id="status"></div>
+    <button onclick="resetGame()">Restart Game</button>
+  </div>
+
+  <script>
+    const board = document.getElementById('board');
+    const statusText = document.getElementById('status');
+    let cells = Array(9).fill(null);
+    let currentPlayer = 'X';
+    let gameActive = true;
+
+    function renderBoard() {
+      board.innerHTML = '';
+      cells.forEach((cell, index) => {
+        const cellElement = document.createElement('div');
+        cellElement.classList.add('cell');
+        cellElement.dataset.index = index;
+        cellElement.textContent = cell;
+        cellElement.addEventListener('click', handleCellClick);
+        board.appendChild(cellElement);
+      });
+    }
+
+    function handleCellClick(e) {
+      const index = e.target.dataset.index;
+      if (!cells[index] && gameActive && currentPlayer === 'X') {
+        cells[index] = 'X';
+        checkWinner();
+        if (gameActive) {
+          currentPlayer = 'O';
+          setTimeout(computerMove, 500);
+        }
+        renderBoard();
+      }
+    }
+
+    function computerMove() {
+      let available = cells.map((v, i) => v === null ? i : null).filter(v => v !== null);
+      if (available.length > 0) {
+        const move = available[Math.floor(Math.random() * available.length)];
+        cells[move] = 'O';
+        checkWinner();
+        currentPlayer = 'X';
+        renderBoard();
+      }
+    }
+
+    function checkWinner() {
+      const winningCombos = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],
+        [0, 4, 8], [2, 4, 6]
+      ];
+      for (const combo of winningCombos) {
+        const [a, b, c] = combo;
+        if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) {
+          gameActive = false;
+          if (cells[a] === 'X') {
+            statusText.textContent = 'You win! 🎉';
+            alert('🎉 Congratulations! You won! 🎉');
+          } else {
+            statusText.textContent = 'Computer wins! 💻';
+            alert('💻 Oh no! The computer won! 😢');
+          }
+          return;
+        }
+      }
+      if (!cells.includes(null)) {
+        statusText.textContent = "It's a draw! 🤝";
+        alert("🤝 It's a draw!");
+        gameActive = false;
+      } else {
+        statusText.textContent = `Player ${currentPlayer === 'X' ? 'You' : 'Computer'}'s turn`;
+      }
+    }
+
+    function resetGame() {
+      cells = Array(9).fill(null);
+      currentPlayer = 'X';
+      gameActive = true;
+      statusText.textContent = '';
+      renderBoard();
+    }
+
+    renderBoard();
+  </script>
+</body>
+</html>
